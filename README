@@ -1,0 +1,29 @@
+
+AVR TOOLCHAIN
+-------------
+
+This script fetches AVR toolchain (Atmel) sources 
+and builds the toolchain. The versions are defined in the 
+beginning of the script. The ones used here are more recent
+than the ones usually included in packages.
+
+Links to the projects:
+
+binutils: http://www.gnu.org/software/binutils/
+gcc:      http://gcc.gnu.org/
+avr-libc: http://savannah.nongnu.org/projects/avr-libc/
+
+The toolchain is installed in 'install' directory under the directory
+where the script is started. It can be moved elsewhere without problems.
+
+To use the toolchain, PATH needs to include the /bin directory of the 
+toolchain. E.g.
+PATH=$PATH:/<install directory>/bin
+ 
+When running the script, make sure it is executable.
+
+chmod a+x install-avr-toolchain
+./install-avr-toolchain
+
+Megawatt 2012
+

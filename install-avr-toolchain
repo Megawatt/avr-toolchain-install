@@ -1,0 +1,115 @@
+#!/bin/sh
+# --------------------------------------------------------------
+#
+# This script fetches AVR toolchain (Atmel) sources 
+# and builds the toolchain. The versions are defined in the 
+# beginning of the script.
+#
+# Links to the originating projects:
+#
+# binutils: http://www.gnu.org/software/binutils/
+# gcc:      http://gcc.gnu.org/
+# avr-libc: http://savannah.nongnu.org/projects/avr-libc/
+#
+# The toolchain is installed in 'install' directory under the directory
+# where the script is started. It can be moved elsewhere without problems.
+#
+# To use the toolchain, PATH needs to include the /bin directory of the 
+# toolchain. E.g.
+# PATH=$PATH:/<install directory>/bin
+# 
+# When running the script, make sure it is executable.
+#
+# chmod a+x install-avr-toolchain
+# ./install-avr-toolchain
+#
+# Megawatt 2012
+# --------------------------------------------------------------
+
+topdir=`pwd`
+install_dir=${topdir}/install
+
+# get out if called from the root dir.
+if [ "/" = "${topdir}" ]; then
+  echo "Warning: in root directory. Exit"
+  exit 1
+fi
+
+# --------------------------------------------------------------
+# Get the source tarballs
+# --------------------------------------------------------------
+# binutils
+i_binutils=binutils-2.22
+i_binutils_tarball=binutils-2.22.tar.gz
+i_binutils_tarball_url=http://ftp.gnu.org/gnu/binutils/binutils-2.22.tar.gz
+
+# gcc
+i_gcc=gcc-4.7.2
+i_gcc_tarball=gcc-4.7.2.tar.bz2
+i_gcc_tarball_url=ftp://ftp.mpi-sb.mpg.de/pub/gnu/mirror/gcc.gnu.org/pub/gcc/releases/gcc-4.7.2/gcc-4.7.2.tar.bz2
+
+# avr-libc
+i_libc=avr-libc-1.8.0
+i_libc_tarball=avr-libc-1.8.0.tar.bz2
+i_libc_tarball_url=http://download.savannah.gnu.org/releases/avr-libc/avr-libc-1.8.0.tar.bz2
+
+
+# --------------------------------------------------------------
+# Make and install binutils
+# --------------------------------------------------------------
+
+mkdir -p ${install_dir}
+
+if [ ! -f ${i_binutils_tarball} ]; then
+  wget ${i_binutils_tarball_url}
+fi
+
+tar -vzxf ${i_binutils_tarball}
+cd ${i_binutils}
+mkdir obj-avr
+cd    obj-avr
+../configure --prefix=${install_dir} --target=avr --disable-nls
+make
+make install  
+
+# --------------------------------------------------------------
+# Add the avr binutils to path
+# --------------------------------------------------------------
+PATH=$PATH:${install_dir}/bin
+cd ${topdir}
+
+if [ ! -f ${i_gcc_tarball} ]; then
+  wget ${i_gcc_tarball_url}
+fi
+
+# --------------------------------------------------------------
+# Make and install gcc
+# --------------------------------------------------------------
+bunzip2 -c ${i_gcc_tarball} | tar vxf -
+cd ${i_gcc}
+./contrib/download_prerequisites
+mkdir obj-avr
+cd    obj-avr
+../configure --prefix=${install_dir} --target=avr --enable-languages=c,c++ --disable-nls --disable-libssp --with-dwarf2
+make
+make install
+
+cd ${topdir}
+
+# --------------------------------------------------------------
+# Make and install avr-libc
+# --------------------------------------------------------------
+if [ ! -f ${i_libc_tarball} ]; then
+  wget ${i_libc_tarball_url}
+fi
+bunzip2 -c ${i_libc_tarball} | tar vxf -
+cd ${i_libc}
+./configure --prefix=${install_dir} --build=`./config.guess` --host=avr
+make
+make install
+
+cd ${topdir}
+
+echo "Done. To use the toolchain set PATH as follows:"
+echo "PATH=\$PATH:${install_dir}/bin"
+
